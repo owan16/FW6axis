@@ -1,0 +1,6 @@
+---- mpu_sensor_configure_fifo Matches (5 in 2 files) ----
+Mpu_sensor.c (src):    if (mpu_sensor_configure_fifo(0))  //
+Mpu_sensor.c (src)://    if (mpu_sensor_configure_fifo(0))
+Mpu_sensor.c (src):uint8_t mpu_sensor_configure_fifo(uint8_t sensors)
+Mpu_sensor.c (src):   // mpu_sensor_configure_fifo(0);
+Mpu_sensor.h (inc):uint8_t mpu_sensor_configure_fifo(uint8_t sensors);
