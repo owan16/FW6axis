@@ -197,7 +197,8 @@ static uint8_t motion_measurement_encode(ble_mts_t * p_mts, ble_srv_motion_meas_
 				len+=6;
 				memcpy(&p_encoded_buffer[len] , p_motion_measurement->inst_gyro, 6);
 				len+=6;
-			if (count_data_on) {
+			//if (count_data_on)
+				{
 				cal_count();
 				p_encoded_buffer[len++]=cur_count>>8;
 				p_encoded_buffer[len++]=cur_count&0xFF;

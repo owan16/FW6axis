@@ -321,7 +321,7 @@ static void on_write(ble_cds_t * p_cds, ble_evt_t * p_ble_evt)
 
 					 SEGGER_RTT_printf(0,"on_write,case 0x49:\r\n");
      //#if H176V2_ENABLE
-                                    
+            /*                        
       tx_buf[1]=accel_fsr_val;
       tx_buf[2]=gyro_fsr_val;
       tx_buf[3]=0x00;
@@ -335,11 +335,15 @@ static void on_write(ble_cds_t * p_cds, ble_evt_t * p_ble_evt)
       tx_buf[9]=dmp_get_accel;
       tx_buf[10]=motion_sampling_rate;
       tx_buf[11]=dmp_mode;
-      //tx_buf[12]=count_data_on;
+	  //Owan open it
+     // tx_buf[12]=count_data_on;
       //tx_buf[13]=(uint8_t)(cnt_threshold_val>>8);
       //tx_buf[14]=cnt_threshold_val&0xff;
-      len=12;
-					/*tx_buf[1]=accel_fsr_val;
+	  //***************************
+      len=15;
+
+	  */
+					tx_buf[1]=accel_fsr_val;
 					tx_buf[2]=gyro_fsr_val;
 				
 					tx_buf[3]=(uint8_t)(int_threshold_val>>8);
@@ -355,7 +359,7 @@ static void on_write(ble_cds_t * p_cds, ble_evt_t * p_ble_evt)
 					tx_buf[13]=(uint8_t)(cnt_threshold_val>>8);
 					tx_buf[14]=cnt_threshold_val&0xff;
 
-					len=15;*/
+					len=15;
 /*
 				
 					tx_buf[3]=0;
@@ -413,13 +417,13 @@ static void on_write(ble_cds_t * p_cds, ble_evt_t * p_ble_evt)
 					break;
 			
 		}
-		/*
+		
 		SEGGER_RTT_printf(0, "len=%x\r\n",len);
 		for (i=0;i<len;i++) {
 			SEGGER_RTT_printf(0, "%02x ",tx_buf[i]);
 		}
 		SEGGER_RTT_WriteString(0, "\r\n");
-		*/
+		
             ble_gatts_hvx_params_t hvx_params;
             memset(&hvx_params, 0, sizeof(hvx_params));
 						uint16_t * p_length;

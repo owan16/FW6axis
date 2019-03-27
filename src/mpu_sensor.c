@@ -673,6 +673,7 @@ uint8_t start_sensor()
 	uint8_t ret_code;
 		mpu_sensor_set_sleep_mode(0);
 		ret_code=mpu_sensor_set_sensors();
+		SEGGER_RTT_printf(0, "start_sensor=%x\r\n",ret_code);
     if (ret_code){
 			return ret_code;
 		}
@@ -1590,6 +1591,8 @@ uint8_t mpu_sensor_get_accel_reg(uint8_t *data)
 {
    // uint8_t tmp[6];
 	uint8_t ret_code;
+
+	
 
     if (!(mpu_st.chip_cfg.sensors & INV_XYZ_ACCEL))
         return 9;

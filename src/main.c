@@ -501,11 +501,11 @@ void cal_count()
 				accn=-accn+1;
 				td=(accn*accel_fsr_tbl[accel_fsr_val])/32768.0;
 				t_count+=td*td;
-/*	
+
 	for (uint8_t i=0;i<6;i++)
 	SEGGER_RTT_printf(0," %02x",accel_data[i]);
 	SEGGER_RTT_printf(0,"\r\n");
-*/	
+
 				if (t_count!=0) {
 					accn=sqrt(t_count)*1000;
 	//SEGGER_RTT_printf(0,"accn= %x\r\n", accn);
@@ -640,6 +640,7 @@ void process_1s_int(void)
 			if (sys_flag.counting) {
 				if (!sys_flag.pc_send_data&!motion_notification&!motion_dmp_on)
 				{
+					SEGGER_RTT_WriteString(0, "start get sensor info\r\n");
 					ret_code=mpu_sensor_get_accel_reg(ble_motion_measurement.inst_accel);
 					memcpy(tx_buf , ble_motion_measurement.inst_accel, 6);
 					cal_count();
@@ -648,6 +649,7 @@ void process_1s_int(void)
 			}
 		
 }
+//Owan motion data
 static uint8_t motion_data_encode()
 
 {
@@ -655,7 +657,8 @@ static uint8_t motion_data_encode()
 	uint8_t i;
 	uint16_t accn;
 	uint32_t t_count;
-	
+
+	//SEGGER_RTT_WriteString(0, "motion_data_encode\r\n");
 		if (motion_dmp_on)
 		{		
 			memcpy(tx_buf+1 , m_buffer, dmp.packet_length);
@@ -667,10 +670,13 @@ static uint8_t motion_data_encode()
 				len+=6;
 				memcpy(tx_buf +len , ble_motion_measurement.inst_gyro, 6);
 				len+=6;
-			if (count_data_on) {
+			//if (count_data_on) 
+				{
 				cal_count();				
-				tx_buf[len++]=cur_count>>8;
-				tx_buf[len++]=cur_count&0xFF;
+				//tx_buf[len++]=cur_count>>8;
+				//tx_buf[len++]=cur_count&0xFF;
+				memcpy(tx_buf+len , &cur_count, 2);
+				len+=2;
 			}
 		}
 		tx_buf[0]=len-1;
@@ -689,6 +695,7 @@ void process_1ms_int(void)
 //	uint8_t ent;
 	//test_cnt++;
 		if (sys_flag.pc_connected) {
+			//SEGGER_RTT_WriteString(0, "process_1ms_int\r\n");
 				if (sys_flag.pc_send_data) {
 							if ( mpu_sensor_get_accel_reg(ble_motion_measurement.inst_accel) ){
 							// Error!
@@ -1114,7 +1121,8 @@ static void on_ble_evt(ble_evt_t * p_ble_evt)
 						save_system_data();
 				}
 				if (cmd_45==0x83) {
-				//reset (DFU)
+				//reset (DFU).
+					SEGGER_RTT_WriteString(0, "Going to DFU mode\r\n");
 					bootloader_start();
 				}
 				m_conn_handle = BLE_CONN_HANDLE_INVALID;
@@ -1385,9 +1393,10 @@ void uart_event_handle(app_uart_evt_t * p_event)
     {
 			case APP_UART_DATA_READY:
             UNUSED_VARIABLE(app_uart_get(&rx_buf[rx_len]));
+			
 			//SEGGER_RTT_printf(0, "rx_buf=%02x",rx_buf[rx_len]);
             rx_len++;
-
+		//SEGGER_RTT_printf(0, "Test cmd=%02x\r\n",cmd);
             if (rx_buf[rx_len - 1] == 0x0a)
             {
 								memset(&tx_buf, 0, 64);
@@ -1786,14 +1795,14 @@ void process_bsp_event()
 								bsp_board_led_off(BSP_LED_1);
 								
 								
-								//read_device_name();
-								/*
+								read_device_name();
+								
 								if (sys_flag.device_name_chged) {
 										sys_flag.device_name_chged=false;
 										gap_params_init();
 										advertising_init();									
 								}
-								*/
+								
 								advertising_start();
 							}
 						}							
@@ -1950,6 +1959,7 @@ static void power_manage(void)
 				cmd_45=0xff;
 			} else {
 				cmd_45=0x83;
+				SEGGER_RTT_WriteString(0, "reset FW\r\n");
 				reset_prepare();
 			}
 		}
@@ -2003,11 +2013,15 @@ static void advertising_start()
 {
     ret_code_t    err_code;
 
-			if (sys_flag.device_name_chged) {
+//Owan close this if()
+/*
+			if (sys_flag.device_name_chged) 
+			{
 										sys_flag.device_name_chged=false;
 										gap_params_init();
 										advertising_init();									
 			}
+			*/
     err_code = ble_advertising_start(BLE_ADV_MODE_FAST);
 		//SEGGER_RTT_printf(0, "ble_advertising_start ret code=%x",err_code);
 
