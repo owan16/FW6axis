@@ -1593,13 +1593,18 @@ uint8_t mpu_sensor_get_accel_reg(uint8_t *data)
 	uint8_t ret_code;
 
 	
+//Owan close it.
 
-    if (!(mpu_st.chip_cfg.sensors & INV_XYZ_ACCEL))
+    if (!(mpu_st.chip_cfg.sensors & INV_XYZ_ACCEL)){
+		SEGGER_RTT_printf(0, "mpu_st.chip_cfg.sensors\r\n");
         return 9;
+    	}
+    	
 
     ret_code=twi_read_bytes(mpu_st.hw->addr, mpu_st.reg->raw_accel, data, 6);
-		if (ret_code!=0)
+		if (ret_code!=0){
         return 3;
+			}
 /*		
     data[0] = tmp[0];
     data[1] = tmp[1];

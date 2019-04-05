@@ -379,6 +379,21 @@ static void on_write(ble_cds_t * p_cds, ble_evt_t * p_ble_evt)
 					len=15;
 				*/
 					break;
+				case 0x55:
+					hb=rx_buf[1];
+					lb=rx_buf[2];
+					tint=cvt_to_uint(hb, lb);
+					max_val=accel_fsr_tbl[accel_fsr_val]*1000;
+					if (tint > max_val)
+						tint=max_val;
+					if (cnt_threshold_val != tint) {
+						sys_flag.sys_data_updated=true;
+						cnt_threshold_val = tint;							
+					}
+					if (err_f) {
+						tx_buf[0]=0xcc;
+					}
+					break;
 				default:
 					tx_buf[0]=cmd|0x80;
 					//len=1;
@@ -407,6 +422,21 @@ static void on_write(ble_cds_t * p_cds, ble_evt_t * p_ble_evt)
 								dmp_mode=tch;
 						}
 					break;
+				case 0x90:
+
+					
+					tx_buf[1]=0x52;
+					tx_buf[2]=0x61;
+				
+					tx_buf[3]=0x62;
+					tx_buf[4]=0x62;
+					tx_buf[5]=0x6f;
+					tx_buf[6]=0x6e;
+					tx_buf[7]=0x69;
+
+					len=8;
+					
+					break;	
 				case 0x92:
 					//power off
 						cmd_45=2;

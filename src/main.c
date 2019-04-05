@@ -543,8 +543,8 @@ void process_1s_int(void)
 			}
 			return;
 		}
-			if (sys_flag.charging) {
-				if (sys_flag.chrg_full) {
+		if (sys_flag.charging) {
+			if (sys_flag.chrg_full) {
 				} else {
 					if (nrf_gpio_pin_read(CHRG_STATE))
 					{
@@ -637,10 +637,11 @@ void process_1s_int(void)
 				app_timer_stop(m_500ms_timer_id);
 				bsp_indication_set(m_stable_state);
 			}
-			if (sys_flag.counting) {
+			if (sys_flag.counting) 
+				{
 				if (!sys_flag.pc_send_data&!motion_notification&!motion_dmp_on)
 				{
-					SEGGER_RTT_WriteString(0, "start get sensor info\r\n");
+					//SEGGER_RTT_WriteString(0, "start get sensor info\r\n");
 					ret_code=mpu_sensor_get_accel_reg(ble_motion_measurement.inst_accel);
 					memcpy(tx_buf , ble_motion_measurement.inst_accel, 6);
 					cal_count();
@@ -658,7 +659,7 @@ static uint8_t motion_data_encode()
 	uint16_t accn;
 	uint32_t t_count;
 
-	//SEGGER_RTT_WriteString(0, "motion_data_encode\r\n");
+	SEGGER_RTT_WriteString(0, "motion_data_encode\r\n");
 		if (motion_dmp_on)
 		{		
 			memcpy(tx_buf+1 , m_buffer, dmp.packet_length);
@@ -1608,6 +1609,33 @@ void uart_event_handle(app_uart_evt_t * p_event)
 									tx_buf[14]=cnt_threshold_val&0xff;
 									len=15;
 								break;
+								case 0x55:
+									hb=rx_buf[1];
+									lb=rx_buf[2];
+									tint=cvt_to_uint(hb, lb);
+									max_val=accel_fsr_tbl[accel_fsr_val]*1000;
+									if (tint > max_val)
+										tint=max_val;
+									if (cnt_threshold_val != tint) {
+										sys_flag.sys_data_updated=true;
+										cnt_threshold_val = tint;							
+									}
+									if (err_f) {
+										tx_buf[0]=0xcc;
+									}
+									break;
+								case 0x90:
+									
+									tx_buf[1]=0x52;
+									tx_buf[2]=0x61;
+									tx_buf[3]=0x62;
+									tx_buf[4]=0x62;
+									tx_buf[5]=0x6f;
+									tx_buf[6]=0x6e;
+									tx_buf[7]=0x69;
+
+									len=8;
+									break;
 								default:
 									tx_buf[0]=cmd|0x80;
 								//len=1;
@@ -1990,7 +2018,7 @@ static void power_manage(void)
 					if (!sys_flag.battery_low) {
 						motion_notification = 1;
 						ret_code=start_sensor();
-			//SEGGER_RTT_printf(0, "start_sensor=%x\r\n", ret_code);
+			SEGGER_RTT_printf(0, "fuck start_sensor=%x\r\n", ret_code);
 						t_time_cnt=0;				//reset time counter
 						app_1ms_timer_start();
 					}
@@ -2141,6 +2169,7 @@ int main(void)
 
     // Initialize sensors.
 		sensor_init();
+	ret_code=start_sensor();
 
     // Start execution.
     application_timers_start();
