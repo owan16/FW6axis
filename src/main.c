@@ -106,7 +106,7 @@ void		ble_srv_bat_send(ble_cds_t *m_cds);
 void		stop_recording(void);
 void		flash_clear_status(void); 
 void 	show_bat_level(void);
-int mpu_run_6500_self_test(long *gyro, long *accel);
+int mpu_run_20689_self_test(long *gyro, long *accel);
 void read_device_name(void);
 
 
@@ -501,11 +501,11 @@ void cal_count()
 				accn=-accn+1;
 				td=(accn*accel_fsr_tbl[accel_fsr_val])/32768.0;
 				t_count+=td*td;
-
+/*
 	for (uint8_t i=0;i<6;i++)
 	SEGGER_RTT_printf(0," %02x",accel_data[i]);
 	SEGGER_RTT_printf(0,"\r\n");
-
+*/
 				if (t_count!=0) {
 					accn=sqrt(t_count)*1000;
 	//SEGGER_RTT_printf(0,"accn= %x\r\n", accn);
@@ -659,7 +659,7 @@ static uint8_t motion_data_encode()
 	uint16_t accn;
 	uint32_t t_count;
 
-	SEGGER_RTT_WriteString(0, "motion_data_encode\r\n");
+	//SEGGER_RTT_WriteString(0, "motion_data_encode\r\n");
 		if (motion_dmp_on)
 		{		
 			memcpy(tx_buf+1 , m_buffer, dmp.packet_length);
@@ -681,12 +681,16 @@ static uint8_t motion_data_encode()
 			}
 		}
 		tx_buf[0]=len-1;
+		
 		if (print_f) {
 			//print_f=false;
+			/*
 		for (i=0;i<len;i++) {
 			SEGGER_RTT_printf(0, "%02x ",tx_buf[i]);
-		}
-		SEGGER_RTT_WriteString(0, "\r\n");
+		}*/
+		//SEGGER_RTT_WriteString(0, "\r\n");
+		
+		
 	}
     return len;
 }
@@ -1387,6 +1391,8 @@ void uart_event_handle(app_uart_evt_t * p_event)
 	uint8_t hb,lb;
 	uint8_t i,tch;
 	uint16_t tint,max_val;
+	uint8_t ret_code;
+	uint8_t test_dev_cnt;
 	bool err_f;
 			//SEGGER_RTT_printf(0, "uart_event_handle %x\n\r",rx_len);
 
@@ -1413,6 +1419,43 @@ void uart_event_handle(app_uart_evt_t * p_event)
 			SEGGER_RTT_printf(0, "\r\n");
 */							
 								switch (cmd) {
+									case 0x9:
+										sys_flag.pc_connected=true;
+										sys_flag.test_device=true;
+										sys_flag.test_end=false;
+										test_dev_cnt=0;
+										test_result=0;
+										bsp_board_led_on(BSP_BOARD_LED_1);
+										nrf_delay_ms(1000);
+										bsp_board_led_off(BSP_BOARD_LED_1);							
+										ret_code=mpu_sensor_init();
+										SEGGER_RTT_printf(0, "self test_mpu_sensor=%02x\r\n",ret_code);
+										if (ret_code!=0) test_result|=2;
+										
+										long gyro[3], accel[3];
+										ret_code = mpu_run_20689_self_test(gyro, accel);
+										SEGGER_RTT_printf(0, "self test =%02x\r\n",ret_code);
+										if (ret_code!=0) test_result|=4;
+										
+										test_result=0x0F;
+										sys_flag.test_end=true;
+
+
+										if (test_dev_cnt==1) return;
+										
+										if (sys_flag.test_end) {
+											test_dev_cnt=1;
+											sys_flag.test_device=false;
+											tx_buf[1]=test_result;
+											len=2;
+											SEGGER_RTT_printf(0, "self test_result=%02x\r\n",test_result);
+											
+										} else {
+											len=1;
+										}
+
+										
+										break;
 									case 0x30:										
 										disable_ble();
 										sys_flag.pc_connected=true;
@@ -1612,8 +1655,12 @@ void uart_event_handle(app_uart_evt_t * p_event)
 								case 0x55:
 									hb=rx_buf[1];
 									lb=rx_buf[2];
+									SEGGER_RTT_printf(0, "%02x ",hb);
+									SEGGER_RTT_printf(0, "%02x ",lb);
+									SEGGER_RTT_printf(0, "0x55 CMD ");
 									tint=cvt_to_uint(hb, lb);
 									max_val=accel_fsr_tbl[accel_fsr_val]*1000;
+									SEGGER_RTT_printf(0, "max_val : %02x ",max_val);
 									if (tint > max_val)
 										tint=max_val;
 									if (cnt_threshold_val != tint) {
@@ -1730,7 +1777,7 @@ void process_bsp_event()
 						show_bat_level();
 					}
 				break;
-        case BSP_EVENT_COUNTING:
+        case BSP_EVENT_COUNTING: //Owan, self-test
 				//start/stop counting
 				SEGGER_RTT_WriteString(0, "BSP_COUNTING_KEY\r\n");
 				//uart_tx_test();
@@ -1746,7 +1793,7 @@ void process_bsp_event()
 							if (ret_code!=0) test_result|=2;
 							
 							long gyro[3], accel[3];
-							ret_code = mpu_run_6500_self_test(gyro, accel);
+							ret_code = mpu_run_20689_self_test(gyro, accel);
 							if (ret_code!=0) test_result|=4;
 							
 					//test_result=2;
@@ -2018,7 +2065,6 @@ static void power_manage(void)
 					if (!sys_flag.battery_low) {
 						motion_notification = 1;
 						ret_code=start_sensor();
-			SEGGER_RTT_printf(0, "fuck start_sensor=%x\r\n", ret_code);
 						t_time_cnt=0;				//reset time counter
 						app_1ms_timer_start();
 					}

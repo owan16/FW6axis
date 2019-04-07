@@ -1613,7 +1613,7 @@ uint8_t mpu_sensor_get_accel_reg(uint8_t *data)
 		data[4] = tmp[4];
 		data[5] = tmp[5];
 */
-#if 1
+#if 0
 SEGGER_RTT_printf(0, "mpu_sensor_get_accel_reg start\r\n");
 uint16_t i;
 			for (i=0;i<6;i++)
@@ -2467,7 +2467,7 @@ static int get_st_6500_biases(long *gyro, long *accel, unsigned char hw_test)
  *  @param[in]  debug       Debug flag used to print out more detailed logs. Must first set up logging in Motion Driver.
  *  @return     Result mask (see above).
  */
-int mpu_run_6500_self_test(long *gyro, long *accel)
+int mpu_run_20689_self_test(long *gyro, long *accel)
 {
     const unsigned char tries = 2;
     long gyro_st[3], accel_st[3];
@@ -2497,7 +2497,7 @@ int mpu_run_6500_self_test(long *gyro, long *accel)
     max_accel_var  = .5f;  //Accel must be within 50% variation for Criteria A
     max_g_offset   = .5f;   //500 mg for Accel Criteria C
 
-		SEGGER_RTT_WriteString(0, "mpu_run_6500_self_test\r\n");
+		SEGGER_RTT_WriteString(0, "mpu_run_20689_self_test\r\n");
 
     for (ii = 0; ii < tries; ii++)
         if (!get_st_6500_biases(gyro, accel, 0))
