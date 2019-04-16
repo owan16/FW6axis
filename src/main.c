@@ -1366,7 +1366,7 @@ void app_uart_send_data(uint8_t length)
         do
         {
             err_code = app_uart_put(tx_buf[i]);
-	//SEGGER_RTT_printf(0, "%x",tx_buf[i]);
+	      //SEGGER_RTT_printf(0, "%x",tx_buf[i]);
             if ((err_code != NRF_SUCCESS) && (err_code != NRF_ERROR_BUSY))
             {
                 NRF_LOG_ERROR("Failed  Error 0x%x. \r\n", err_code);
@@ -1400,7 +1400,10 @@ void uart_event_handle(app_uart_evt_t * p_event)
     {
 			case APP_UART_DATA_READY:
             UNUSED_VARIABLE(app_uart_get(&rx_buf[rx_len]));
-			
+
+			for (i=0;i<rx_len;i++)
+				SEGGER_RTT_printf(0, "%02x",rx_buf[i]);
+			SEGGER_RTT_printf(0, "\r\n");
 			//SEGGER_RTT_printf(0, "rx_buf=%02x",rx_buf[rx_len]);
             rx_len++;
 		//SEGGER_RTT_printf(0, "Test cmd=%02x\r\n",cmd);
@@ -1615,7 +1618,7 @@ void uart_event_handle(app_uart_evt_t * p_event)
 										}
 										hb=rx_buf[13];
 										lb=rx_buf[14];
-										tint=cvt_to_uint(hb, lb);
+										tint=cvt_to_uint(hb, lb)  ;
 										max_val=accel_fsr_tbl[accel_fsr_val]*1000;
 										if (tint > max_val)
 											tint=max_val;
@@ -1658,9 +1661,9 @@ void uart_event_handle(app_uart_evt_t * p_event)
 									SEGGER_RTT_printf(0, "%02x ",hb);
 									SEGGER_RTT_printf(0, "%02x ",lb);
 									SEGGER_RTT_printf(0, "0x55 CMD ");
-									tint=cvt_to_uint(hb, lb);
+									tint=cvt_to_uint(hb, lb) * 1000;
 									max_val=accel_fsr_tbl[accel_fsr_val]*1000;
-									SEGGER_RTT_printf(0, "max_val : %02x ",max_val);
+									//SEGGER_RTT_printf(0, "max_val : %02x ",max_val);
 									if (tint > max_val)
 										tint=max_val;
 									if (cnt_threshold_val != tint) {
